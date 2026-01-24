@@ -15,19 +15,12 @@ bool isValid(char* s) {
     for (int i = 0; i < n; i++)
     {
         c=s[i];
-        if (top==-1 && (c=='}' || c== ')'|| c==']') )return false;
+        if (top==-1 && ( c== ')') )return false;
         else if (c=='(' )stk[++top]=1;
-        else if (c== '{')stk[++top]=2;
-        else if (c=='[' )stk[++top]=3;
         else if (c ==')' && stk[top]== 1){
             top--;
         }
-        else if (c =='}' && stk[top]== 2){
-            top--;
-        }
-        else if (c ==']' && stk[top]== 3){
-            top--;
-        }
+            
     }
     if (top>=0)return false;
     return true;
