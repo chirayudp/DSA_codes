@@ -1,60 +1,74 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
-#define max 1000000 
-int top=-1;
-int stk[max];
-
-void push(int item){
-    
-        stk[++(top)]=item;
-}
-void pop(){
-    if (top >= 0)
-    {
-        int item = stk[top];
-        top--;
-    }
-}
-void ptop(){
-    if(top==-1){
-        printf("Empty!\n");
+#define max 1000000007
+long long top=-1;
+void push(long long* stk ,long long n,long long item){
+    if(top+1 == n){
+        printf("-1\n");
         return;
     }
-    printf("%d\n", stk[top]);
+    stk[++top]=item;
 }
-int main(){
-    
-int t;
-scanf("%d",&t);
-for (int i = 0; i < t; i++)
-{
-    int q;
-    scanf("%d",&q);
-    switch (q)
+void pop(){
+    if (top == -1){
+        printf("-1\n");
+        return;
+    }
+    top--;
+}
+void size(){
+    printf("%lld\n",top+1);
+}
+void getsum(long long *arr){
+    long long sum=0;
+    for (long long i = 0; i < top+1; i++)
     {
-    case 1:{
-        int a;
-        scanf("%d",&a);
-        push(a);
-        
-        
-        break;}
-    
-    case 3:{
-        ptop();
-        
-        break;
+        sum+=((arr[i] % max + max )% max);
     }
-    case 2:{
-        
+    printf("%lld\n",( sum % max + max ) % max);
+}
+void isfull(long long* arr,long long n){
+    if (top+1 == n)
+    {
+        printf("YES\n");
+        return ;
+    }
+    printf("NO\n");
+}
+
+int main(){  
+long long k,n;
+scanf("%lld %lld",&k,&n);
+long long stk[n];
+for (long long i = 0; i < k; i++)
+{
+    long long q;
+    scanf("%lld",&q);
+    if (q==1)
+    {
+        long long x;
+        scanf("%lld",&x);
+        push(stk,n,x);
+    }
+    else if (q==2)
+    {
         pop();
-        
-        break;
     }
-    default:
-        break;
+    else if (q==3)
+    {
+       getsum(stk);
     }
+    else if (q==4)
+    {
+        isfull(stk,n);
+    }
+    
+    else if (q==5)
+    {
+        size();
+    }
+    
 }
 
 }
