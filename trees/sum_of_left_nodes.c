@@ -7,23 +7,14 @@ struct TreeNode {
     struct TreeNode *left;
     struct TreeNode *right;
 };
-void sumleaf(struct TreeNode* root, int* s){
-    if(root==NULL)return ;
-    if(root->left==NULL &&  root->right==NULL){
-        printf("%d ",*s);
-        *s+=root->val;}
-    sumleaf(root->left,s);
-    if(root->right && root->right->left && root->right->right){
-        sumleaf(root->right,s);
-    }
-    return;
 
-}
 int sumOfLeftLeaves(struct TreeNode* root) {
     if(root == NULL)return 0;
-    if(root->left == NULL)return 0;
-    int sum=0;
-    sumleaf(root, &sum);
+    int sum = 0;
+    if(root->left && root ->left->right == NULL && root->left->left==NULL)sum+=root->val;
+    sum += sumleaf(root->left);    
+    sum+= sumleaf(root->right);
+
     return sum;
 }
 
