@@ -21,26 +21,20 @@ struct TreeNode {
 int idx;
 int arr[10000] = {0};
 void store(struct TreeNode* root) {
-    if(root== NULL)return ;
+    if (root == NULL)
+        return;
     store(root->left);
     arr[idx++] = root->val;
     store(root->right);
 }
 bool isValidBST(struct TreeNode* root) {
-    if (root->left == NULL && root->right == NULL)
-        return true;
-    idx=0;
+    idx = 0;
     store(root);
-    int t = 1;
-    for (int i = 0; i < idx-1 ; i++) {
-        if (arr[i] >= arr[i + 1]) {
-            t = 0;
-            break;
-        }
+    for (int i = 0; i < idx - 1; i++) {
+        if (arr[i] >= arr[i + 1])
+            return false;
     }
-    if (t)
-        return true;
-    return false;
+    return true;
 }
 int main(){
 long long n;
