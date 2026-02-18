@@ -1,0 +1,11 @@
+else
+{
+    if (i == 0) rmax[i] = 0;
+        
+    else {
+        if (rmax[i - 1] > arr[i - 1])
+            rmax[i] = rmax[i - 1];
+        else
+            rmax[i] = arr[i - 1];
+    }
+}
