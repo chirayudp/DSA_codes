@@ -1,11 +1,124 @@
-else
-{
-    if (i == 0) rmax[i] = 0;
-        
-    else {
-        if (rmax[i - 1] > arr[i - 1])
-            rmax[i] = rmax[i - 1];
-        else
-            rmax[i] = arr[i - 1];
+typedef struct node{
+    int val;
+    struct node *left,*right;
+}node;
+node* create(int n){
+    node* new= malloc(sizeof(node));
+    new->val=n;
+    new->left = new->right = NULL;
+    return new;
+}
+void insert(node** root,int n,int*size){
+    if (*root == NULL)
+    {
+        (*size)++;
+        (*root)=create(n);
+        return;
     }
+    
+    node* par=NULL;
+    node* cur=*root;
+    while(cur && cur->val != n){
+        par=cur;
+        if(n<cur->val)cur=cur->left;
+        else cur=cur->right;
+    }
+    node* new=create(n);
+    if(par == NULL)return ;
+    else if (cur == par->left)par->left=new;
+    else par->right=new;
+    (*size)++;
+    
+}
+int returnmax(node* root){
+    if(root == NULL)return 0;
+    while (root->right)
+    {
+        root=root->right;
+    }
+    return root->val;
+}
+int returnmin(node* root){
+    if(root == NULL)return 0;
+    while (root->left)
+    {
+        root=root->left;
+    }
+    return root->val;
+}
+void shift(node** root,node* par,node* pos, node* des){
+    if (root==NULL || par == NULL)
+    {
+        *root=des;
+        return ;
+    }
+    if(par->left==pos)par->left=des;
+    else par->right=des;
+    free(pos);
+}
+void deletemin(node** root,int num,int* size){
+    node* par=NULL;
+    node* cur=*root;
+    while(cur && cur->val != num){
+        par=cur;
+        if( num<cur->val)cur=cur->left;
+        else cur=cur->right;
+    }
+    if(cur==NULL)return;
+    else if(cur->left == NULL){
+        shift(root,par,cur,cur->right);
+    }
+    else if(cur->right==NULL){
+        shift(root,par,cur,cur->left);
+    }
+    else{
+        node* p=NULL;
+        node* max=cur->min;
+        while (max->right)
+        {
+            p=max;
+            max=max->right;
+        }
+        if (p)
+        {
+            shift(root,par,max,max->left);
+            max->left=cur->left;
+        }
+        shift(root,par,cur,max);
+        max->right=cur->right;
+    }
+    (*size)--; 
+}
+void deletemax(node** root,int num,int* size){
+    node* par=NULL;
+    node* cur=*root;
+    while(cur && cur->val != num){
+        par=cur;
+        if(num<cur->val)cur=cur->left;
+        else cur=cur->right;
+    }
+    if(cur==NULL)return;
+    else if(cur->left == NULL){
+        shift(root,par,cur,cur->right);
+    }
+    else if(cur->right==NULL){
+        shift(root,par,cur,cur->left);
+    }
+    else{
+        node* p=NULL;
+        node* min=cur->left;
+        while (min->left)
+        {
+            p=min;
+            min=min->left;
+        }
+        if (p)
+        {
+            shift(root,par,min,min->right);
+            min->right=cur->right;
+        }
+        shift(root,par,cur,min);
+        min->left=cur->left;
+    }
+    (*size)--; 
 }
