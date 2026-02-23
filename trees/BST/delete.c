@@ -2,21 +2,20 @@
 #include<string.h>
 #include<stdlib.h>
 // without parent;
-struct TreeNode {
+typedef struct TreeNode {
     int val;
     struct TreeNode *left;
     struct TreeNode *right;
-};
+}TreeNode;
 
-struct TreeNode* min(struct TreeNode* root) {
+TreeNode* min(TreeNode* root) {
     if (root == NULL)
         return NULL;
     if (root->left == NULL)
         return root;
     return min(root->left);
 }
-void shift(struct TreeNode** root, struct TreeNode* par, struct TreeNode* c,
-           struct TreeNode* gc) {
+void shift(TreeNode** root, TreeNode* par, TreeNode* c,TreeNode* gc) {
     if (par == NULL) {
         *root = gc;
         return;
@@ -27,9 +26,9 @@ void shift(struct TreeNode** root, struct TreeNode* par, struct TreeNode* c,
         par->right = gc;
 }
 
-struct TreeNode* deleteNode(struct TreeNode* root, int key) {
-    struct TreeNode* p = NULL;
-    struct TreeNode* z = root;
+TreeNode* deleteNode(TreeNode* root, int key) {
+    TreeNode* p = NULL;
+    TreeNode* z = root;
     while (z && z->val != key) {
         p = z;
         if (key < z->val)
@@ -45,8 +44,8 @@ struct TreeNode* deleteNode(struct TreeNode* root, int key) {
     else if (z->right == NULL)
         shift(&root, p, z, z->left);
     else {
-        struct TreeNode* pr = NULL;
-        struct TreeNode* m = z->right;
+        TreeNode* pr = NULL;
+        TreeNode* m = z->right;
         while (m->left) {
             pr = m;
             m = m->left;
