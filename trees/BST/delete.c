@@ -27,35 +27,35 @@ void shift(TreeNode** root, TreeNode* par, TreeNode* c,TreeNode* gc) {
 }
 
 TreeNode* deleteNode(TreeNode* root, int key) {
-    TreeNode* p = NULL;
-    TreeNode* z = root;
-    while (z && z->val != key) {
-        p = z;
-        if (key < z->val)
-            z = z->left;
-        else if (key > z->val)
-            z = z->right;
+    TreeNode* par = NULL;
+    TreeNode* cur = root;
+    while (cur && cur->val != key) {
+        par = cur;
+        if (key < cur->val)
+            cur = cur->left;
+        else if (key > cur->val)
+            cur = cur->right;
     }
-    if (!z) {
+    if (!cur) {
         return root;
     }
-    if (z->left == NULL)
-        shift(&root, p, z, z->right);
-    else if (z->right == NULL)
-        shift(&root, p, z, z->left);
+    if (cur->left == NULL)
+        shift(&root, par, cur, cur->right);
+    else if (cur->right == NULL)
+        shift(&root, par, cur, cur->left);
     else {
-        TreeNode* pr = NULL;
-        TreeNode* m = z->right;
+        TreeNode* par_min = NULL;
+        TreeNode* m = cur->right;
         while (m->left) {
-            pr = m;
+            par_min = m;
             m = m->left;
         }
-        if (pr) {
-            shift(&root, pr, m, m->right);
-            m->right = z->right;
+        if (par_min) {
+            shift(&root, par_min, m, m->right);
+            m->right = cur->right;
         }
-        shift(&root, p, z, m);
-        m->left = z->left;
+        shift(&root, par, cur, m);
+        m->left = cur->left;
     }
     return root;
 }
