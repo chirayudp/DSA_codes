@@ -30,7 +30,6 @@ void mergesort(int* arr, int l, int r){
     merge(arr,l,mid,r);
     return ;
 }
-
 int main(){
 int arr[]={5,203,5 ,1,9,7,-400};
 int n=sizeof(arr)/sizeof(arr[0]);
