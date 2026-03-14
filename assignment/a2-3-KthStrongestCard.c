@@ -1,299 +1,246 @@
+
+
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
-#define max 100007
-typedef struct node
-{
-    int a,d;
-    int cnt;
-    struct node* next;
-}node;
-typedef struct hashmap
-{
-    node* arr[max];
-    int size;
-    int c;
-}hashmap;
 
-node* create(int a, int d){
-    node* new = malloc(sizeof(node));
-    new->a=a;
-    new->d=d;
-    new->cnt=1;
-    new->next=NULL;
-    return new;
-}
-unsigned int hash(int a ,int d){
-    return (unsigned int)(a*17 + d)%max;
-}
-node* sorted[max];
-int ssz = 0;
+// ─────────────────────────────────────────────
+// AVL Node
+// Convention: stronger = right, weaker = left
+// sz = total cards in subtree (duplicates counted)
+// ─────────────────────────────────────────────
+typedef struct node {
+    int a, d, cnt, h;
+    long long sz;
+    struct node *left, *right;
+} node;
 
-int findpos(int a, int d) {
-    int lo = 0, hi = ssz;
-    while (lo < hi) {
-        int mid = (lo + hi) / 2;
-        int s1 = sorted[mid]->a + sorted[mid]->d;
-        int s2 = a + d;
-        if (s1 > s2 || (s1 == s2 && sorted[mid]->a > a))
-            lo = mid + 1;
-        else
-            hi = mid;
+int unique_size = 0;
+
+// Pool allocator — much faster than malloc per node
+node pool[300005];
+int pool_idx = 0;
+
+node* create(int a, int d) {
+    node* n = &pool[pool_idx++];
+    n->a = a; n->d = d;
+    n->cnt = 1; n->h = 1; n->sz = 1;
+    n->left = n->right = NULL;
+    return n;
+}
+
+// ─────────────────────────────────────────────
+// Strength comparison
+// 1 = first stronger, 2 = first weaker, 0 = equal
+// ─────────────────────────────────────────────
+int scmp(int a1,int d1,int a2,int d2){
+    if(a1+d1 > a2+d2) return 1;
+    if(a1+d1 < a2+d2) return 2;
+    if(a1 > a2) return 1;
+    if(a1 < a2) return 2;
+    return 0;
+}
+
+// ─────────────────────────────────────────────
+// AVL Helpers
+// ─────────────────────────────────────────────
+int ht(node* n)        { return n ? n->h : 0; }
+long long sz(node* n)  { return n ? n->sz : 0; }
+
+void upd(node* n) {
+    if(!n) return;
+    n->h  = 1 + (ht(n->left) > ht(n->right) ? ht(n->left) : ht(n->right));
+    n->sz = sz(n->left) + sz(n->right) + n->cnt;
+}
+
+int bal(node* n) { return n ? ht(n->left) - ht(n->right) : 0; }
+
+node* rotR(node* y) {
+    node* x = y->left;
+    y->left = x->right;
+    x->right = y;
+    upd(y); upd(x);
+    return x;
+}
+
+node* rotL(node* x) {
+    node* y = x->right;
+    x->right = y->left;
+    y->left = x;
+    upd(x); upd(y);
+    return y;
+}
+
+node* rebal(node* n) {
+    upd(n);
+    if(bal(n) > 1) {
+        if(bal(n->left) < 0) n->left = rotL(n->left);   // LR case
+        return rotR(n);
     }
-    return lo;
+    if(bal(n) < -1) {
+        if(bal(n->right) > 0) n->right = rotR(n->right); // RL case
+        return rotL(n);
+    }
+    return n;
 }
 
-void sortinsert(node* nd) {
-    int pos = findpos(nd->a, nd->d);
-    for (int i = ssz; i > pos; i--)
-        sorted[i] = sorted[i-1];
-    sorted[pos] = nd;
-    ssz++;
+// ─────────────────────────────────────────────
+// Insert
+// ─────────────────────────────────────────────
+node* insert(node* root, int a, int d) {
+    if(!root) {
+        unique_size++;
+        return create(a, d);
+    }
+    int c = scmp(root->a, root->d, a, d);
+    if(c == 0) {
+        root->cnt++;
+        root->sz++;
+        return root;
+    }
+    if(c == 1) root->left  = insert(root->left,  a, d); // root stronger → new is weaker → goes left
+    else       root->right = insert(root->right, a, d); // root weaker  → new is stronger → goes right
+    return rebal(root);
 }
 
-void sortremove(int a, int d) {
-    int pos = findpos(a, d);
-    for (int i = pos; i < ssz; i++) {
-        if (sorted[i]->a == a && sorted[i]->d == d) {
-            for (int j = i; j < ssz - 1; j++)
-                sorted[j] = sorted[j+1];
-            ssz--;
-            return;
+// ─────────────────────────────────────────────
+// Delete one copy; removes node if cnt hits 0
+// ─────────────────────────────────────────────
+node* minnode(node* n) { return n->left ? minnode(n->left) : n; }
+
+node* delete(node* root, int a, int d) {
+    if(!root) return NULL;
+    int c = scmp(root->a, root->d, a, d);
+    if(c == 1)      root->left  = delete(root->left,  a, d);
+    else if(c == 2) root->right = delete(root->right, a, d);
+    else {
+        // found the node
+        if(root->cnt > 1) {
+            root->cnt--;
+            root->sz--;
+            return rebal(root);
         }
+        // cnt == 1, remove node
+        unique_size--;
+        if(!root->left)  return root->right;
+        if(!root->right) return root->left;
+        // two children: replace with inorder successor (min of right subtree)
+        node* mn = minnode(root->right);
+        root->a   = mn->a;
+        root->d   = mn->d;
+        root->cnt = mn->cnt;
+        // now delete that successor (it has cnt copies, delete all at once)
+        // but delete() only removes one copy at a time, so we need a full node removal
+        // use a helper that removes the min node entirely
+        root->right = delete(root->right, mn->a, mn->d);
+        unique_size++; // delete decremented it, correct back since we already counted above
+        upd(root);
+        return rebal(root);
     }
+    return rebal(root);
 }
 
-void insert(hashmap *map,int a ,int d){
-    unsigned int h=hash(a,d);
-    node* cur=map->arr[h];
-    while (cur)
-    {
-        if (cur->a==a && cur->d==d)
-        {
-            cur->cnt++;
-            map->c++;
-            return ;
-        }
-        cur=cur->next;
-    }
-    node* new =create(a,d);
-    new->next=map->arr[h];
-    map->arr[h] = new;
-    map->size++;
-    map->c++;
-    sortinsert(new);
-}
-void insert_nosort(hashmap* map, int a, int d){
-    unsigned int h = hash(a, d);
-    node* cur = map->arr[h];
-    while(cur){
-        if(cur->a == a && cur->d == d){ cur->cnt++; map->c++; return; }
-        cur = cur->next;
-    }
-    node* new = create(a, d);
-    new->next = map->arr[h];
-    map->arr[h] = new;
-    map->size++;
-    map->c++;
-}
-void delete(hashmap * map,int a,int d){
-    unsigned int h=hash(a,d);
-    node* cur=map->arr[h];
-    node* prev=NULL;
-    while (cur)
-    {
-        if (cur->a==a && cur->d==d)
-        {
-            if(cur->cnt==1){
-                if (prev==NULL)
-                {
-                    map->arr[h]=cur->next;
-                }
-                else prev->next=cur->next;
-                map->c-= cur->cnt;
-                sortremove(cur->a,cur->d);
-                free(cur);
-                map->size--;
-            }
-            else{
-                cur->cnt--;
-                map->c--;
-            }
-            return ;
-        }
-        prev=cur;
-        cur=cur->next;
-    }
-
-}
-int search(hashmap* map,int a,int d){
-    unsigned int h=hash(a,d);
-    node* cur=map->arr[h];
-    while (cur!=NULL)
-    {
-        if (cur->a==a && cur->d==d)
-        {
-            return cur->cnt;
-        }
-        cur=cur->next;
-    }
-    return -1;
-}
-void inithash(hashmap* map){
-    for (int i = 0; i < max; i++)
-    {
-        map->arr[i]=NULL;
-    }
-}
-int strengthcmp(int a1,int d1,int a2,int d2){
-    if(a1+d1 > a2+d2)return 1 ;
-    if(a1+d1 < a2+d2)return 2;
-    if(a1>a2)return 1;
-    return 2;
+// ─────────────────────────────────────────────
+// Search: returns cnt or -1
+// ─────────────────────────────────────────────
+int search(node* root, int a, int d) {
+    if(!root) return -1;
+    int c = scmp(root->a, root->d, a, d);
+    if(c == 0) return root->cnt;
+    if(c == 1) return search(root->left,  a, d);
+    return         search(root->right, a, d);
 }
 
-
-void merge(node** arr, int l, int mid, int r){
-    node* left[mid-l+1];
-    node* right[r-mid];
-
-    for(int i=l;i<=mid;i++)
-        left[i-l]=arr[i];
-    for(int i=mid+1;i<=r;i++)
-        right[i-(mid+1)]=arr[i];
-
-    int i=0,j=0;
-    for(int k=l;k<=r;k++)
-    {
-        if(i >= (mid-l+1)) arr[k]=right[j++];
-        else if(j >= (r-mid)) arr[k]=left[i++];
-        else
-        {
-            int s1 = left[i]->a + left[i]->d;
-            int s2 = right[j]->a + right[j]->d;
-
-            if(s1 > s2 || (s1==s2 && left[i]->a > right[j]->a))
-                arr[k]=left[i++]; 
-            else
-                arr[k]=right[j++];
-        }
-    }
+// ─────────────────────────────────────────────
+// Kth strongest (1-indexed)
+// stronger=right, so we visit right subtree first
+// sz counts total cards including duplicates
+// ─────────────────────────────────────────────
+node* kthstr(node* root, int k) {
+    if(!root) return NULL;
+    long long right_sz = sz(root->right);
+    if(k <= right_sz)                    return kthstr(root->right, k);
+    if(k <= right_sz + root->cnt)        return root;
+    return kthstr(root->left, k - right_sz - root->cnt);
 }
-void mergesort(node** arr, int l, int r){
-    if(r-l <= 0) return;
-    int mid = (r-l)/2 + l;
-    mergesort(arr,l,mid);
-    mergesort(arr,mid+1,r);
-    merge(arr,l,mid,r);
+
+// ─────────────────────────────────────────────
+// Print: stronger=right, so reverse inorder = right→root→left
+// gives strongest to weakest
+// ─────────────────────────────────────────────
+void printbst(node* root) {
+    if(!root) return;
+    printbst(root->right);
+    printf("%d %d %d\n", root->a, root->d, root->cnt);
+    printbst(root->left);
 }
-node* kthstr(hashmap*map,int k) {
-    if (k > map->c) return NULL;
-    int count = 0;
-    for (int i = 0; i < ssz; i++) {
-        count += sorted[i]->cnt;
-        if (count >= k) return sorted[i];
-    }
-    return NULL;
-}
+
 int main(){
     int n;
-    scanf("%d",&n);
-    hashmap* map = malloc(sizeof(hashmap));
-    inithash(map);
-    map->size = 0;
-    map->c = 0;
+    scanf("%d", &n);
+    node* root = NULL;
+
     for(int i = 0; i < n; i++){
         int a, d;
         scanf("%d %d", &a, &d);
-        insert_nosort(map, a, d);  
+        root = insert(root, a, d);
     }
 
-    int j = 0;
-    for(int i = 0; i < max; i++){
-        node* cur = map->arr[i];
-        while(cur){ sorted[j++] = cur; cur = cur->next; }
-    }
-    ssz = j;
-    mergesort(sorted, 0, ssz - 1);  
-// for (int i = 0; i < max; i++)
-// {
-//     node* cur=map->arr[i];
-//     while (cur!=NULL)
-//     {
-//         printf("%d %d %d\n",cur->a,cur->d,cur->cnt);
-//         cur=cur->next;
-//     }
-// }
+    int q;
+    scanf("%d", &q);
 
-int q;
-scanf("%d",&q);
-for (int i = 0; i < q; i++)
-{
-    char str[20];
-    scanf("%s",str);
-    if(strcmp(str,"TRADE")==0){
-        int a1,d1,a2,d2;
-        scanf("%d %d %d %d",&a1,&d1,&a2,&d2);
-        // printf("ip %d %d\n",a1,d1);
-        if (a2==-1 && d2==-1)
-        {
-            insert(map,a1,d1);
-            printf("1\n");
-        }
-        else if(search(map,a2,d2)<=1){
-            printf("0\n");
-        }
-        else{
-            int x = search(map,a1,d1);
-            if(x == -1){
+    while(q--){
+        char str[20];
+        scanf("%s", str);
+
+        if(strcmp(str, "TRADE") == 0){
+            int a1, d1, a2, d2;
+            scanf("%d %d %d %d", &a1, &d1, &a2, &d2);
+
+            if(a2 == -1 && d2 == -1){
+                // Rule 2: no card requested, always accept
+                root = insert(root, a1, d1);
                 printf("1\n");
-                delete(map,a2,d2);
-                insert(map,a1,d1);
             }
-            else{
-                if(strengthcmp(a1,d1,a2,d2)==2){
-                    printf("0\n");
-                }
-                else{
+            else if(search(root, a2, d2) <= 1){
+                // Rule 1: don't have or only 1 copy → decline
+                printf("0\n");
+            }
+            else {
+                // Have >= 2 copies of requested card
+                int have_offered = search(root, a1, d1);
+                if(have_offered == -1){
+                    // Rule 3a: don't own offered card → accept
                     printf("1\n");
-                    delete(map,a2,d2);
-                    insert(map,a1,d1);
+                    root = delete(root, a2, d2);
+                    root = insert(root, a1, d1);
+                }
+                else {
+                    // Rule 3b: already own offered card → compare strength
+                    if(scmp(a1, d1, a2, d2) == 2){
+                        // offered weaker than requested → decline
+                        printf("0\n");
+                    }
+                    else {
+                        // offered equal or stronger → accept
+                        printf("1\n");
+                        root = delete(root, a2, d2);
+                        root = insert(root, a1, d1);
+                    }
                 }
             }
         }
+        else if(strcmp(str, "KTH_STRONGEST") == 0){
+            int k;
+            scanf("%d", &k);
+            node* tmp = kthstr(root, k);
+            if(!tmp) printf("-1\n");
+            else     printf("%d %d %d\n", tmp->a, tmp->d, tmp->cnt);
+        }
     }
-    else if(strcmp(str,"KTH_STRONGEST")==0){
-        int k;scanf("%d",&k);
-        node* tmp = kthstr(map,k);
-        if(tmp==NULL)printf("-1\n");
-        else
-            printf("%d %d %d\n",tmp->a,tmp->d,tmp->cnt);
-    }
-    // printf("{%d}>%d\n",i,map->size);
-    // for (int i = 0; i < max; i++)
-    // { 
-    //     node* cur=map->arr[i];
-    //     while (cur!=NULL)
-    //     {
-    //         printf("%d %d %d\n",cur->a,cur->d,cur->cnt);
-    //         cur=cur->next;
-    //     }
-        
-    // }
 
-}
-printf("%d\n",ssz);
-for (int i = 0; i < ssz; i++)
-{ 
-    printf("%d %d %d\n",sorted[i]->a,sorted[i]->d,sorted[i]->cnt);
-}
-for(int i=0;i<max;i++){
-    node* cur = map->arr[i];
-    while(cur){
-        node* tmp = cur;
-        cur = cur->next;
-        free(tmp);
-    }
-}
-free(map);
+    printf("%d\n", unique_size);
+    printbst(root);
+
+    return 0;
 }
