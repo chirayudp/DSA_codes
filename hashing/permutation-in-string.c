@@ -6,8 +6,8 @@ bool checkInclusion(char* s1, char* s2) {
     int n2=strlen(s2);
     int n1=strlen(s1);
     if(n1>n2)return false;
-        int hash1[26]={0};
-        int hash2[26]={0};
+    int hash1[26]={0};
+    int hash2[26]={0};
     for (int i = 0; i < n1; i++)
     {
         hash1[s1[i]-'a']++;

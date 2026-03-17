@@ -5,7 +5,7 @@
 int isanagram(char* s, char* t) {
     if(strlen(s) != strlen(t)) return 0;
     int hashs[max];
-    for(int i=0;i<max;i++){hashs[i]=0;}
+    for(int i=0;i<max;i++)hashs[i]=0;
     while(*s!='\0'){
         hashs[*s]++;
         hashs[*t]--;

@@ -1,33 +1,46 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main() {
-    int t;
-    scanf("%d", &t);
-    while(t--){
-        int n;
-        scanf("%d", &n);
-        int arr[n];
-        for(int i=0;i<n;i++){
-            scanf("%d",&arr[i]);
-        }
-        int stk[n+1];
-        int top=0;
-        int lmin[n];
-        for(int i=0; i<n ;i++){
-            // printf("%d %d ",i,top);
-            while(top>0 && arr[stk[top]]>=arr[i]){
-                top--;
+long long countSubseq(long long arr[], long long n) {
+    long long dp[n];
+    long long total = 0;
+
+    for(long long i = 0; i < n; i++) {
+        dp[i] = 1;
+
+        for(long long j = 0; j < i; j++) {
+            if(arr[j] <= arr[i]) {
+                dp[i] += dp[j];
             }
-            int prev=(top>0)?stk[top]:-1;
-            lmin[i]=i-prev;
-            stk[++top]=i;
-            // printf("%d %d %d\n",prev,lmin[i],top);
         }
-        int count=0;
-        for(int i=0;i<n;i++){
-            count+=((lmin[i]+1)*lmin[i]/2);
-        }
-        printf("%d\n",count);
+
+        total += dp[i];
     }
+
+    return total;
+}
+
+void readArray(long long arr[], long long n) {
+    for(long long i = 0; i < n; i++) {
+        scanf("%lld", &arr[i]);
+    }
+}
+
+int main() {
+    long long t;
+    scanf("%lld", &t);
+
+    while(t--) {
+        long long n;
+        scanf("%lld", &n);
+
+        long long arr[n];
+        readArray(arr, n);
+
+        long long ans = countSubseq(arr, n);
+
+        printf("%lld\n", ans);
+    }
+
+    return 0;
 }
