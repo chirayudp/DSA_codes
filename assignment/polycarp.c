@@ -1,34 +1,4 @@
 #include <stdio.h>
-#define max 200005
-
-long long stk[max];
-long long size;
-long long seg[4*max];
-
-long long fmax(long long a, long long b) {
-    return a > b ? a : b;
-}
-
-void build(int node, int l, int r, long long arr[]) {
-    if (l == r) {
-        seg[node] = arr[l];
-        return;
-    }
-    int mid = (l + r) / 2;
-    build(2*node, l, mid, arr);
-    build(2*node+1, mid+1, r, arr);
-    seg[node] = fmax(seg[2*node], seg[2*node+1]);
-}
-
-long long query(int node, int l, int r, int ql, int qr) {
-    if (qr < l || r < ql) return 0;
-    if (ql <= l && r <= qr) return seg[node];
-    int mid = (l + r) / 2;
-    return fmax(
-        query(2*node, l, mid, ql, qr),
-        query(2*node+1, mid+1, r, ql, qr)
-    );
-}
 
 int main() {
     long long t;scanf("%lld",&t);
@@ -40,12 +10,12 @@ int main() {
         for(long long i=0;i<n;i++){
             scanf("%lld",&arr[i]);
         }   
-        build(1, 0, n-1, arr);
         // for(long long i=0;i<n;i++){
         //     printf("%lld ",arr[i]);
         // }
         // printf("\n");
-        size=0;
+        long long stk[n];
+        long long size=0;
         for(long long i=0;i<n;i++){
             while (size>0 && arr[stk[size-1]] < arr[i])
             {
@@ -65,32 +35,52 @@ int main() {
             else right[i]=stk[size-1];
             stk[size++]=i;
         }
-        long long res = 0;
-        size = 0;
-
-        for (long long i = 0; i <= n; i++) {
-            long long cur = (i == n ? (long long)1e18 : arr[i]);
-
-            while (size > 0 && arr[stk[size - 1]] < cur) {
-                long long k = stk[--size];
-                long long lf ;
-                if (size==0)lf =-1;
-                else lf = (stk[size - 1]);
-                long long rf = i;
-
-                if (lf + 1 >= k || k + 1 >= rf)
-                    continue;
-
-                long long lmax = query(1, 0, n-1, lf+1, k-1);
-                long long rmax = query(1, 0, n-1, k+1, rf-1);
-
-                long long score = arr[k] * (lmax + rmax);
-                if (score > res) res = score;
+        long long lmax[n];lmax[0]=arr[0];
+        long long rmax[n];rmax[n-1]=arr[n-1];
+        for (long long i = 0; i < n; i++) {
+            if (i - 1 <= left[i])
+                lmax[i] = 0;
+            else
+            {
+                if (i == 0) lmax[i] = 0;   
+                else {
+                    if (lmax[i - 1] > arr[i - 1])
+                        lmax[i] = lmax[i - 1];
+                    else
+                        lmax[i] = arr[i - 1];
+                }
             }
-            stk[size++] = i;//if (i < n) stk[size++] = i;
+        }
+        for (long long i = n - 1; i >= 0; i--) {
+            if (i + 1 >= right[i]) {
+                rmax[i] = 0;
+            } else {
+                if (i == n - 1) {
+                    rmax[i] = 0;
+                } else {
+                    if (rmax[i + 1] > arr[i + 1])
+                        rmax[i] = rmax[i + 1];
+                    else
+                        rmax[i] = arr[i + 1];
+                }
+            }
         }
 
-
-        printf("%lld\n", res);
+        long long res=0;
+        for (long long i = 0; i < n; i++)
+        {
+            long long li = (left[i] +1);
+            long long lf = i-1;
+            long long rf = right[i] -1;
+            long long ri = i+1;
+            if (li > lf || rf < ri)continue;
+            long long score = arr[i] * (lmax[i] + rmax[i]);
+            if(score > res)res = score;
+            // printf("(%lld) ",score);
+            // else{res+=score; printf("{%lld} ",res);}
+        }
+        printf("%lld\n",res);
     }
 } 
+
+
