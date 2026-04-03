@@ -12,7 +12,7 @@ int main() {
         }   
         // for(long long i=0;i<n;i++){
         //     printf("%lld ",arr[i]);
-        // }
+        // }--
         // printf("\n");
         long long stk[n];
         long long size=0;
