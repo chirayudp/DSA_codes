@@ -23,7 +23,6 @@ bool bfs(vector<vector<int>>&adj,int src,vector<int>&vis){
         }
         
     }
-    return false;
     
 }
 bool iscycle(vector<vector<int>>&adj){
