@@ -1,0 +1,54 @@
+Consider an infinite sequence f(i)
+ for i=1,2,3,…,∞
+.
+
+The value f(i)
+ is defined as the maximum integer k
+ such that 67k
+ divides i!
+.
+
+Your task is to find the **MEX** (Minimum Excluded value) of this sequence. The MEX is defined as the smallest non-negative integer that does not appear in the set {f(1),f(2),f(3),…}
+.
+
+Print a single integer — the MEX of the sequence.
+
+Input
+There is no input for this problem.
+
+Output
+Print a single integer — the MEX of the sequence.
+
+
+2.
+
+You need to determine a secret integer x
+ chosen from the set {1,2,3,…,N}
+. To find x
+, you can repeatedly ask questions of the form: "Is the secret number strictly greater than y
+?".
+
+It is known that if there are no constraints on the number of queries for specific values of x
+, the optimal strategy is binary search. The number of questions required for binary search on a set of size N
+ is ⌈log2N⌉
+. For example, if N=64
+, binary search guarantees finding any secret number using at most 6 questions. However, notice that in this case even if the secret number is x=1
+, binary search still requires 6 questions.
+
+We want to find the optimal strategy when there are restrictions on the number of queries we can ask when x
+ is small. Specifically, we define a guessing strategy as valid for a given d
+ if, for every possible secret number x∈{1,…,N}
+, the strategy requires at most x+d
+ questions to definitively find x
+.
+
+Let Q(N,d)
+ be the maximum number of questions asked by the optimal valid strategy to find any secret number x from a set of size N.
+
+What is the value of Q(1000,0)?
+
+Input
+There is no input for this problem.
+
+Output
+Output a single integer, the exact answer to the question.
