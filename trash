@@ -1,23 +1,23 @@
-Consider an infinite sequence f(i)
- for i=1,2,3,…,∞
-.
+    Consider an infinite sequence f(i)
+    for i=1,2,3,…,∞
+    .
 
-The value f(i)
- is defined as the maximum integer k
- such that 67k
- divides i!
-.
+    The value f(i)
+    is defined as the maximum integer k
+    such that 67k
+    divides i!
+    .
 
-Your task is to find the **MEX** (Minimum Excluded value) of this sequence. The MEX is defined as the smallest non-negative integer that does not appear in the set {f(1),f(2),f(3),…}
-.
+    Your task is to find the **MEX** (Minimum Excluded value) of this sequence. The MEX is defined as the smallest non-negative integer that does not appear in the set {f(1),f(2),f(3),…}
+    .
 
-Print a single integer — the MEX of the sequence.
+    Print a single integer — the MEX of the sequence.
 
-Input
-There is no input for this problem.
+    Input
+    There is no input for this problem.
 
-Output
-Print a single integer — the MEX of the sequence.
+    Output
+    Print a single integer — the MEX of the sequence.
 
 
 2.
